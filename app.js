@@ -1,15 +1,16 @@
+// Fetch videos and display dynamically in index.html
 const videoCardContainer = document.querySelector('.video-container');
 
-let api_key = "your api key";
-let video_http = "https://www.googleapis.com/youtube/v3/videos?";
-let channel_http = "https://www.googleapis.com/youtube/v3/channels?";
+const api_key = "your_api_key"; // Replace with your YouTube Data API key
+const video_http = "https://www.googleapis.com/youtube/v3/videos?";
+const channel_http = "https://www.googleapis.com/youtube/v3/channels?";
 
 fetch(video_http + new URLSearchParams({
     key: api_key,
     part: 'snippet',
     chart: 'mostPopular',
     maxResults: 50,
-    regionCode: 'IN'
+    regionCode: 'IN' // Adjust region code as needed
 }))
 .then(res => res.json())
 .then(data => {
@@ -33,8 +34,9 @@ const getChannelIcon = (video_data) => {
 }
 
 const makeVideoCard = (data) => {
-    videoCardContainer.innerHTML += `
-    <div class="video" onclick="location.href = 'https://youtube.com/watch?v=${data.id}'">
+    const videoCard = document.createElement('div');
+    videoCard.classList.add('video');
+    videoCard.innerHTML = `
         <img src="${data.snippet.thumbnails.high.url}" class="thumbnail" alt="">
         <div class="content">
             <img src="${data.channelThumbnail}" class="channel-icon" alt="">
@@ -43,18 +45,31 @@ const makeVideoCard = (data) => {
                 <p class="channel-name">${data.snippet.channelTitle}</p>
             </div>
         </div>
-    </div>
     `;
+    videoCard.addEventListener('click', () => {
+        window.location.href = `https://youtube.com/watch?v=${data.id}`;
+    });
+    videoCardContainer.appendChild(videoCard);
 }
 
-// search bar
+// Handle form submission for video upload in create.html
+const uploadForm = document.getElementById('uploadForm');
 
-const searchInput = document.querySelector('.search-bar');
-const searchBtn = document.querySelector('.search-btn');
-let searchLink = "https://www.youtube.com/results?search_query=";
+uploadForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-searchBtn.addEventListener('click', () => {
-    if(searchInput.value.length){
-        location.href = searchLink + searchInput.value;
+    const formData = new FormData(uploadForm);
+    const response = await fetch('/upload-video', {
+        method: 'POST',
+        body: formData
+    });
+
+    if (response.ok) {
+        alert('Video uploaded successfully!');
+        // Redirect to index.html or handle as needed
+        window.location.href = '/index.html';
+    } else {
+        alert('Failed to upload video.');
     }
-})
+});
+    
