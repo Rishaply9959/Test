@@ -4,11 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculator</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+        .calculator {
+            border-radius: 5px;
+            box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        .calculator-screen, .calculator-result {
+            width: 100%;
+            height: 80px;
+            border: none;
+            background-color: #252525;
+            color: #fff;
+            text-align: right;
+            padding-right: 20px;
+            padding-left: 10px;
+            font-size: 2.2rem;
+        }
+        .calculator-result {
+            background-color: #333;
+        }
+        button {
+            height: 60px;
+            font-size: 1.4rem;
+        }
+        button:hover {
+            cursor: pointer;
+            opacity: 0.9;
+        }
+        .operator {
+            background-color: #f59e0b;
+            color: white;
+        }
+        .all-clear {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .equal-sign {
+            background-color: #6c5ce7;
+            color: white;
+        }
+        .calculator-keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+        }
+    </style>
 </head>
 <body>
     <div class="calculator">
         <input type="text" class="calculator-screen" value="" disabled>
+        <input type="text" class="calculator-result" value="" disabled>
         <div class="calculator-keys">
             <button type="button" class="operator" value="+">+</button>
             <button type="button" class="operator" value="-">−</button>
@@ -33,7 +88,117 @@
             <button type="button" class="equal-sign operator" value="=">=</button>
         </div>
     </div>
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const calculator = {
+                displayValue: '0',
+                firstOperand: null,
+                waitingForSecondOperand: false,
+                operator: null,
+            };
+
+            function inputDigit(digit) {
+                const { displayValue, waitingForSecondOperand } = calculator;
+
+                if (waitingForSecondOperand === true) {
+                    calculator.displayValue = digit;
+                    calculator.waitingForSecondOperand = false;
+                } else {
+                    calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
+                }
+                updateDisplay();
+            }
+
+            function inputDecimal(dot) {
+                if (calculator.waitingForSecondOperand === true) return;
+
+                if (!calculator.displayValue.includes(dot)) {
+                    calculator.displayValue += dot;
+                }
+                updateDisplay();
+            }
+
+            function handleOperator(nextOperator) {
+                const { firstOperand, displayValue, operator } = calculator;
+                const inputValue = parseFloat(displayValue);
+
+                if (operator && calculator.waitingForSecondOperand) {
+                    calculator.operator = nextOperator;
+                    return;
+                }
+
+                if (firstOperand == null && !isNaN(inputValue)) {
+                    calculator.firstOperand = inputValue;
+                } else if (operator) {
+                    const result = calculate(firstOperand, inputValue, operator);
+                    calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
+                    calculator.firstOperand = result;
+                    const resultDisplay = document.querySelector('.calculator-result');
+                    resultDisplay.value = `${firstOperand} ${operator} ${inputValue} = ${result}`;
+                }
+
+                calculator.waitingForSecondOperand = true;
+                calculator.operator = nextOperator;
+                updateDisplay();
+            }
+
+            function calculate(firstOperand, secondOperand, operator) {
+                if (operator === '+') {
+                    return firstOperand + secondOperand;
+                } else if (operator === '-') {
+                    return firstOperand - secondOperand;
+                } else if (operator === '*') {
+                    return firstOperand * secondOperand;
+                } else if (operator === '/') {
+                    return firstOperand / secondOperand;
+                }
+                return secondOperand;
+            }
+
+            function resetCalculator() {
+                calculator.displayValue = '0';
+                calculator.firstOperand = null;
+                calculator.waitingForSecondOperand = false;
+                calculator.operator = null;
+                const resultDisplay = document.querySelector('.calculator-result');
+                resultDisplay.value = '';
+                updateDisplay();
+            }
+
+            function updateDisplay() {
+                const display = document.querySelector('.calculator-screen');
+                display.value = calculator.displayValue;
+            }
+
+            updateDisplay();
+
+            const keys = document.querySelector('.calculator-keys');
+            keys.addEventListener('click', (event) => {
+                const { target } = event;
+
+                if (!target.matches('button')) {
+                    return;
+                }
+
+                if (target.classList.contains('operator')) {
+                    handleOperator(target.value);
+                    return;
+                }
+
+                if (target.classList.contains('decimal')) {
+                    inputDecimal(target.value);
+                    return;
+                }
+
+                if (target.classList.contains('all-clear')) {
+                    resetCalculator();
+                    return;
+                }
+
+                inputDigit(target.value);
+            });
+        });
+    </script>
 </body>
-  </html>
-  
+    </html>
+    
