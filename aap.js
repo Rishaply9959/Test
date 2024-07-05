@@ -1,74 +1,318 @@
-const readline = require('readline');
-
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
-let toDoList = [];
-
-function showMenu() {
-    console.log(`
-        To-Do List Menu:
-        1. View To-Do List
-        2. Add To-Do Item
-        3. Remove To-Do Item
-        4. Exit
-    `);
-    rl.question('Choose an option: ', (option) => {
-        switch (option) {
-            case '1':
-                viewToDoList();
-                break;
-            case '2':
-                addToDoItem();
-                break;
-            case '3':
-                removeToDoItem();
-                break;
-            case '4':
-                rl.close();
-                break;
-            default:
-                console.log('Invalid option. Please try again.');
-                showMenu();
-                break;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISHAPLY</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('background-image.jpg') no-repeat center center fixed;
+            background-size: cover;
         }
-    });
-}
 
-function viewToDoList() {
-    if (toDoList.length === 0) {
-        console.log('Your to-do list is empty.');
-    } else {
-        console.log('To-Do List:');
-        toDoList.forEach((item, index) => {
-            console.log(`${index + 1}. ${item}`);
-        });
-    }
-    showMenu();
-}
-
-function addToDoItem() {
-    rl.question('Enter a new to-do item: ', (item) => {
-        toDoList.push(item);
-        console.log(`"${item}" has been added to your to-do list.`);
-        showMenu();
-    });
-}
-
-function removeToDoItem() {
-    rl.question('Enter the number of the item to remove: ', (number) => {
-        const index = parseInt(number) - 1;
-        if (index >= 0 && index < toDoList.length) {
-            const removedItem = toDoList.splice(index, 1);
-            console.log(`"${removedItem}" has been removed from your to-do list.`);
-        } else {
-            console.log('Invalid item number. Please try again.');
+        header {
+            background-color: #000000;
+            color: #FFD700;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        showMenu();
-    });
-}
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .logo img {
+            height: 30px;
+            margin-right: 10px;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: #FFD700;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .search-bar input {
+            padding: 5px;
+            font-size: 16px;
+            border: none;
+            outline: none;
+        }
+        .search-bar button {
+            padding: 5px 10px;
+            font-size: 16px;
+            background-color: #FFD700;
+            border: none;
+            cursor: pointer;
+        }
+        .user-options button {
+            background-color: #FFD700;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+        nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: #FFD700;
+            padding: 10px;
+        }
+        nav a {
+            text-decoration: none;
+            color: #000000;
+            font-weight: bold;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .video {
+            margin-bottom: 20px;
+        }
+        .video video {
+            width: 100%;
+            height: auto;
+        }
+        .video-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            background-color: #FFD700;
+            padding: 10px 20px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .footer a {
+            text-decoration: none;
+            color: #000000;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .footer img {
+            height: 24px;
+            margin-right: 5px;
+        }
 
-// Start the app by showing the menu
-showMenu();
+        /* Upload Modal */
+        #uploadModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        #uploadModal .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 50%;
+        }
+        #uploadModal .modal-content h2 {
+            margin-top: 0;
+        }
+        #uploadModal .modal-content label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        #uploadModal .modal-content input, 
+        #uploadModal .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #uploadModal .modal-content button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #FFD700;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="Rishaply-icon.png" alt="Logo">
+            RISHAPLY
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search">
+            <button>Search</button>
+        </div>
+        <div class="user-options">
+            <button onclick="document.getElementById('uploadModal').style.display='flex'">Upload</button>
+        </div>
+    </header>
+    <div class="main-content" id="videoContainer">
+        <!-- Uploaded videos will appear here -->
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal">
+        <div class="modal-content">
+            <h2>Upload Video</h2>
+            <label for="videoTitle">Title:</label>
+            <input type="text" id="videoTitle" placeholder="Video Title">
+            <label for="videoDescription">Description:</label>
+            <textarea id="videoDescription" rows="4" placeholder="Video Description"></textarea>
+            <label for="videoUsername">Username:</label>
+            <input type="text" id="videoUsername" placeholder="Your Username">
+            <label for="videoUpload">Choose file:</label>
+            <input type="file" id="videoUpload" accept="video/*">
+            <button onclick="uploadVideo()">Upload Video</button>
+            <button onclick="closeUploadModal()">Cancel</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <a href="#" onclick="loadHome()">
+            <img src="home-icon.png" alt="Home">
+            Home
+        </a>
+        <a href="#" onclick="loadVideos()">
+            <img src="shorts-icon.png" alt="Videos">
+            Videos
+        </a>
+        <a href="#" onclick="loadHistory()">
+            <img src="history-icon.png" alt="History">
+            History
+        </a>
+    </div>
+
+    <script>
+        // Initialize IndexedDB
+        let db;
+        const request = indexedDB.open('videoDB', 1);
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains('videos')) {
+                const objectStore = db.createObjectStore('videos', { keyPath: 'id', autoIncrement: true });
+                objectStore.createIndex('title', 'title', { unique: false });
+                objectStore.createIndex('description', 'description', { unique: false });
+                objectStore.createIndex('username', 'username', { unique: false });
+            }
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadHome();
+        };
+
+        request.onerror = function(event) {
+            console.error('Database error:', event.target.error);
+        };
+
+        function uploadVideo() {
+            const videoFile = document.getElementById('videoUpload').files[0];
+            const videoTitle = document.getElementById('videoTitle').value;
+            const videoDescription = document.getElementById('videoDescription').value;
+            const videoUsername = document.getElementById('videoUsername').value;
+
+            if (videoFile && videoTitle && videoDescription && videoUsername) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const dataURL = event.target.result;
+                    saveVideoData(videoFile.name, videoTitle, videoDescription, videoUsername, dataURL);
+                };
+                reader.readAsDataURL(videoFile);
+            } else {
+                alert('Please fill out all fields and select a video file.');
+            }
+        }
+
+        function saveVideoData(name, title, description, username, dataURL) {
+            const transaction = db.transaction(['videos'], 'readwrite');
+            const objectStore = transaction.objectStore('videos');
+            const request = objectStore.add({ title: title, description: description, username: username, dataURL: dataURL });
+
+            request.onsuccess = function() {
+                loadHome();
+                closeUploadModal();
+            };
+
+            request.onerror = function() {
+                alert('Error uploading video.');
+            };
+        }
+
+        function loadHome() {
+            // Code for loading home content
+        }
+
+        function loadVideos() {
+            const transaction = db.transaction(['videos'], 'readonly');
+            const objectStore = transaction.objectStore('videos');
+            const request = objectStore.getAll();
+
+            request.onsuccess = function(event) {
+                const videos = event.target.result;
+                const videoContainer = document.getElementById('videoContainer');
+                videoContainer.innerHTML = '';
+
+                videos.forEach(video => {
+                    const videoElement = document.createElement('div');
+                    videoElement.classList.add('video');
+                    
+                    const videoTitle = document.createElement('div');
+                    videoTitle.classList.add('video-title');
+                    videoTitle.textContent = video.title;
+                    
+                    const videoTag = document.createElement('video');
+                    videoTag.controls = true;
+                    videoTag.src = video.dataURL;
+                    videoTag.type = 'video/mp4';
+
+                    const videoDescription = document.createElement('p');
+                    videoDescription.textContent = video.description;
+
+                    const videoUsername = document.createElement('p');
+                    videoUsername.textContent = `Uploaded by: ${video.username}`;
+
+                    videoElement.appendChild(videoTag);
+                    videoElement.appendChild(videoTitle);
+                    videoElement.appendChild(videoDescription);
+                    videoElement.appendChild(videoUsername);
+                    
+                    videoContainer.appendChild(videoElement);
+                });
+            };
+        }
+
+        function loadHistory() {
+            alert("History feature is not implemented yet.");
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+            document.getElementById('videoTitle').value = '';
+            document.getElementById('videoDescription').value = '';
+            document.getElementById('videoUsername').value = '';
+            document.getElementById('videoUpload').value = '';
+        }
+    </script>
+</body>
+    </html>
+    
